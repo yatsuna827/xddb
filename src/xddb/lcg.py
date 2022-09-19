@@ -26,48 +26,51 @@ def _calc_index(seed: int, a: int, b: int, order: int) -> int:
         return _calc_index(seed // 2, a, b, order - 1) * 2 - 1
 
 
-_doubling_f = _precalc(_a, _b)
-_doubling_f_inv = _precalc(_a_rev, _b_rev)
+_doubling = _precalc(_a, _b)
+
+
+def _jump(seed: int, n: int) -> int:
+    for i in range(0, 32):
+        if n & (1 << i):
+            a, b = _doubling[i]
+            seed = (seed * a + b) & _mask
+    return seed
 
 
 class LCG(object):
     _cnt: int
     seed: int
 
-    def __init__(self, seed: int) -> None:
-        self._cnt = 0
-        self.seed = seed
-
-    def _jump(self, n: int, mem: List[Tuple[int, int]]) -> int:
-        for i in range(0, 32):
-            if n & (1 << i):
-                a, b = mem[i]
-                self.seed = (self.seed * a + b) & _mask
-        return self.seed
+    def __init__(self, seed: int, offset: int = 0) -> None:
+        offset &= _mask
+        self._cnt = offset
+        self.seed = _jump(seed, offset) if offset else seed
 
     def _increment(self, n: int) -> None:
         self._cnt = (self._cnt + n) & _mask
 
-    def adv(self, n: Optional[int] = None) -> int:
+    def adv(self, n: Optional[int] = None) -> "LCG":
         if n is None:
             self._increment(1)
             self.seed = (self.seed * _a + _b) & _mask
-            return self.seed
+            return self
         else:
             self._increment(n)
-            return self._jump(n, _doubling_f)
+            self.seed = _jump(self.seed, n)
+            return self
 
-    def back(self, n: Optional[int] = None) -> int:
+    def back(self, n: Optional[int] = None) -> "LCG":
         if n is None:
             self._increment(-1)
             self.seed = (self.seed * _a_rev + _b_rev) & _mask
-            return self.seed
+            return self
         else:
             self._increment(-n)
-            return self._jump(n, _doubling_f_inv)
+            self.seed = _jump(self.seed, (-n) & _mask)
+            return self
 
     def rand(self, m: Optional[int] = None) -> int:
-        rand = self.adv() >> 16
+        rand = self.adv().seed >> 16
         return rand % m if m is not None else rand
 
     @property
