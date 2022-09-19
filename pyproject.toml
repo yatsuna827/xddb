@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "xddb"
+version = "0.1.0"
+description = ""
+authors = ["yatsuna_827 <@sub_827>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+flake8 = "^5.0.4"
+black = "^22.8.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
