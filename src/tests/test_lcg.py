@@ -30,6 +30,19 @@ class TestLCG(unittest.TestCase):
         self.assertNotEqual(seed, lcg.adv())
         self.assertEqual(seed, lcg.back())
 
+    def test_index(self):
+        seed = 0xDEADBEEF
+        lcg = LCG(seed)
+
+        seed_12345 = lcg.adv(12345)
+        self.assertEqual(12345, lcg.index)
+
+        lcg.back(100)
+        self.assertEqual(12245, lcg.index)
+
+        lcg = LCG(seed_12345)
+        self.assertEqual(12345, lcg.index_from(seed))
+
 
 if __name__ == "__main__":
     unittest.main()
