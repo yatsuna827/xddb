@@ -63,12 +63,9 @@ def _to_code(p: Tuple[PlayerTeam, int, int], e: Tuple[PlayerTeam, int, int]) -> 
 
 
 class XDDBClient(object):
-    seed_list: List[int]
-    code_list: List[int]
-
     def __init__(self) -> None:
-        self.seed_list = []
-        self.code_list = []
+        self.seed_list: List[int] = []
+        self.code_list: List[int] = []
         with open(_path_file, "rb") as reader:
             while True:
                 code, seed = reader.read(4), reader.read(4)
