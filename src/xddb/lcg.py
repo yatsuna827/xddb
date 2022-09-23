@@ -1,8 +1,6 @@
 from typing import List, Optional, Tuple
 
 _mask = 0xFFFF_FFFF
-_a, _b = 0x343FD, 0x269EC3
-_a_rev, _b_rev = 0xB9B33155, 0xA170F641
 
 
 def _precalc(a: int, b: int) -> List[Tuple[int, int]]:
@@ -26,47 +24,42 @@ def _calc_index(seed: int, a: int, b: int, order: int) -> int:
         return _calc_index(seed // 2, a, b, order - 1) * 2 - 1
 
 
-_doubling = _precalc(_a, _b)
-
-
-def _jump(seed: int, n: int) -> int:
-    for i in range(0, 32):
-        if n & (1 << i):
-            a, b = _doubling[i]
-            seed = (seed * a + b) & _mask
-    return seed
-
-
 class LCG(object):
-    _cnt: int
-    seed: int
-
     def __init__(self, seed: int, offset: int = 0) -> None:
         offset &= _mask
-        self._cnt = offset
-        self.seed = _jump(seed, offset) if offset else seed
+        self._cnt: int = offset
+        self.seed: int = self._jump(seed, offset) if offset else seed
 
-    def _increment(self, n: int) -> None:
-        self._cnt = (self._cnt + n) & _mask
+    _a, _b = 0x343FD, 0x269EC3
+    _a_rev, _b_rev = 0xB9B33155, 0xA170F641
+    _doubling = _precalc(_a, _b)
 
-    def adv(self, n: Optional[int] = None) -> "LCG":
+    @classmethod
+    def _jump(self, seed: int, n: int) -> int:
+        for i in range(0, 32):
+            if n & (1 << i):
+                a, b = self._doubling[i]
+                seed = (seed * a + b) & _mask
+        return seed
+
+    def adv(self, n: Optional[int] = None):
         if n is None:
-            self._increment(1)
-            self.seed = (self.seed * _a + _b) & _mask
+            self._cnt = (self._cnt + 1) & _mask
+            self.seed = (self.seed * self._a + self._b) & _mask
             return self
         else:
-            self._increment(n)
-            self.seed = _jump(self.seed, n)
+            self._cnt = (self._cnt + n) & _mask
+            self.seed = self._jump(self.seed, n)
             return self
 
-    def back(self, n: Optional[int] = None) -> "LCG":
+    def back(self, n: Optional[int] = None):
         if n is None:
-            self._increment(-1)
-            self.seed = (self.seed * _a_rev + _b_rev) & _mask
+            self._cnt = (self._cnt - 1) & _mask
+            self.seed = (self.seed * self._a_rev + self._b_rev) & _mask
             return self
         else:
-            self._increment(-n)
-            self.seed = _jump(self.seed, (-n) & _mask)
+            self._cnt = (self._cnt - n) & _mask
+            self.seed = self._jump(self.seed, (-n) & _mask)
             return self
 
     def rand(self, m: Optional[int] = None) -> int:
@@ -78,6 +71,21 @@ class LCG(object):
         return self._cnt
 
     def index_from(self, init_seed: int) -> int:
-        idx = _calc_index(self.seed, _a, _b, 32)
-        base = _calc_index(init_seed, _a, _b, 32)
+        return self.get_index(self.seed, init_seed)
+
+    @classmethod
+    def gen_seed(self, seed: int, take: Optional[int] = None):
+        if take is None:
+            while True:
+                yield seed
+                seed = (seed * self._a + self._b) & _mask
+        else:
+            for _ in range(0, take):
+                yield seed
+                seed = (seed * self._a + self._b) & _mask
+
+    @classmethod
+    def get_index(self, seed: int, init_seed: int) -> int:
+        idx = _calc_index(seed, self._a, self._b, 32)
+        base = _calc_index(init_seed, self._a, self._b, 32)
         return (idx - base) & _mask
