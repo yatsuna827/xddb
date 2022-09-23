@@ -77,7 +77,7 @@ def _gen_evs(lcg: LCG) -> int:
     sum_evs = 0
 
     for i in range(0, 101):
-        evs = [_ + lcg.rand(0x100) for _ in evs]
+        evs = [(_ + lcg.rand(0x100)) & 0xFF for _ in evs]
         sum_evs = sum(evs)
 
         if sum_evs == 510:
@@ -107,7 +107,7 @@ def _shave(evs: List[int], sum_evs: int) -> None:
         for i in range(0, 6):
             if sum_evs == 510:
                 return
-            if evs[i] != 0:
+            if evs[i] > 0:
                 evs[i] -= 1
                 sum_evs -= 1
 
@@ -117,6 +117,6 @@ def _fill(evs: List[int], sum_evs: int) -> None:
         for i in range(0, 6):
             if sum_evs == 510:
                 return
-            if evs[i] != 0:
+            if evs[i] < 255:
                 evs[i] += 1
                 sum_evs += 1
