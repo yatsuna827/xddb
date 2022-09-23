@@ -115,3 +115,10 @@ class XDDBClient(object):
 
             res.add(lcg.seed)
         return res
+
+    @property
+    def db_hash(self):
+        from hashlib import md5
+
+        with open(_path_file, "rb") as f:
+            return md5(f.read()).hexdigest()

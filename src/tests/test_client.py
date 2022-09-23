@@ -17,6 +17,18 @@ class TestXDDBClient(unittest.TestCase):
         )
         self.assertEqual({0x233F7EC1, 0xF03F7EC1}, res)
 
+        res = self.cli.search(
+            (PlayerTeam.デオキシス, 256, 650),
+            (EnemyTeam.ファイヤー, 327, 256),
+            (PlayerTeam.ミュウツー, 362, 349),
+            (EnemyTeam.フリーザー, 320, 388),
+        )
+        self.assertEqual({0x4D1FFF4D}, res)
+
+    def test_db_hash(self):
+        hash = self.cli.db_hash
+        self.assertEqual("d01348c9b687259e2e0467f4af6f979b", hash)
+
 
 if __name__ == "__main__":
     unittest.main()
