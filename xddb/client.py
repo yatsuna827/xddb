@@ -10,7 +10,7 @@ from .quick_battle import EnemyTeam, PlayerTeam, generate_quick_battle
 _path_file = normpath(join(dirname(abspath(__file__)), "./XDDB.bin"))
 
 
-def _to_code(p: Tuple[PlayerTeam, int, int], e: Tuple[PlayerTeam, int, int]) -> int:
+def _to_code(p: Tuple[PlayerTeam, int, int], e: Tuple[EnemyTeam, int, int]) -> int:
     p_team, p_hp_0, p_hp_1 = p
     e_team, e_hp_0, e_hp_1 = e
 
@@ -54,7 +54,7 @@ class XDDBClient(object):
         for seed in [(h8 << 24) | l24 for l24 in l24_list for h8 in range(0, 0x100)]:
             lcg = LCG(seed)
 
-            p, e, code = generate_quick_battle(lcg)
+            p, e, code, _ = generate_quick_battle(lcg)
             if code != code1:
                 continue
             if p != p_team1:
@@ -62,7 +62,7 @@ class XDDBClient(object):
             if e != e_team1:
                 continue
 
-            p, e, code = generate_quick_battle(lcg)
+            p, e, code, _ = generate_quick_battle(lcg)
             if code != code2:
                 continue
             if p != p_team2:

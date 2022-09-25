@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import List, Tuple
+from typing import List, Optional, Set, Tuple, overload
 
 from lcg.gc import LCG
 
@@ -54,10 +54,20 @@ class EnemyTeam(IntEnum):
         return _e_base_hp[self]
 
 
-def generate_quick_battle(lcg: LCG, p_tsv: int = 0x10000):
+@overload
+def generate_quick_battle(lcg: LCG) -> Tuple[PlayerTeam, EnemyTeam, int, Set[int]]:
+    pass
+
+
+@overload
+def generate_quick_battle(lcg: LCG, p_tsv: int) -> Tuple[PlayerTeam, EnemyTeam, int]:
+    pass
+
+
+def generate_quick_battle(lcg: LCG, p_tsv: Optional[int] = None):
     """
     Returns:
-        (p_team: PlayerTeam, e_team: EnemyTeam, code: int)
+        `(p_team: PlayerTeam, e_team: EnemyTeam, code: int, p_team_psvs: set[int])`
     """
     lcg.adv()
     p_team = PlayerTeam(lcg.rand(5))
@@ -67,6 +77,7 @@ def generate_quick_battle(lcg: LCG, p_tsv: int = 0x10000):
     e_tsv = lcg.rand() ^ lcg.rand()
 
     hp = [0, 0, 0, 0]
+    psv: Set[int] = Set()
 
     # 相手1匹目
     lcg.adv()
@@ -100,10 +111,12 @@ def generate_quick_battle(lcg: LCG, p_tsv: int = 0x10000):
     hp[2] = lcg.rand(32)
     lcg.adv()  # SCD
     lcg.adv()  # Ability
-    while True:
-        psv = lcg.rand() ^ lcg.rand()
-        if (psv ^ p_tsv) >= 8:
-            break
+    if p_tsv is None:
+        psv.add(lcg.rand() ^ lcg.rand())
+    else:
+        while True:
+            if (lcg.rand() ^ lcg.rand() ^ p_tsv) >= 8:
+                break
     hp[2] += _gen_evs(lcg) // 4
 
     # プレイヤー2匹目
@@ -112,17 +125,24 @@ def generate_quick_battle(lcg: LCG, p_tsv: int = 0x10000):
     hp[3] = lcg.rand(32)
     lcg.adv()  # SCD
     lcg.adv()  # Ability
-    while True:
-        psv = lcg.rand() ^ lcg.rand()
-        if (psv ^ p_tsv) >= 8:
-            break
+    if p_tsv is None:
+        psv.add(lcg.rand() ^ lcg.rand())
+    else:
+        while True:
+            if (lcg.rand() ^ lcg.rand() ^ p_tsv) >= 8:
+                break
     hp[3] += _gen_evs(lcg) // 4
 
-    return (
+    result = (
         p_team,
         e_team,
         (hp[0] << 24) + (hp[1] << 16) + (hp[2] << 8) + (hp[3]),
     )
+
+    if p_tsv is None:
+        return (*result, psv)
+    else:
+        return result
 
 
 def _gen_evs(lcg: LCG) -> int:
