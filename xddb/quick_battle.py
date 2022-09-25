@@ -1,16 +1,67 @@
+from enum import IntEnum
 from typing import List, Tuple
 
-from .lcg import LCG
+from lcg.gc import LCG
+
+_p_base_hp: List[Tuple[int, int]] = [
+    (322, 340),
+    (310, 290),
+    (210, 620),
+    (320, 230),
+    (310, 310),
+]
+
+_e_base_hp: List[Tuple[int, int]] = [
+    (290, 310),
+    (290, 270),
+    (290, 250),
+    (320, 270),
+    (270, 230),
+]
 
 
-def generate_quick_battle(lcg: LCG, p_tsv: int = 0x10000) -> Tuple[int, int, int]:
+class PlayerTeam(IntEnum):
+    Mewtwo = 0
+    ミュウツー = 0
+    Mew = 1
+    ミュウ = 1
+    Deoxys = 2
+    デオキシス = 2
+    Rayquaza = 3
+    レックウザ = 3
+    Jirachi = 4
+    ジラーチ = 4
+
+    @property
+    def base_hp(self):
+        return _p_base_hp[self]
+
+
+class EnemyTeam(IntEnum):
+    Articuno = 0
+    フリーザー = 0
+    Zapdos = 1
+    サンダー = 1
+    Moltres = 2
+    ファイヤー = 2
+    Kangaskhan = 3
+    ガルーラ = 3
+    Latias = 4
+    ラティアス = 4
+
+    @property
+    def base_hp(self):
+        return _e_base_hp[self]
+
+
+def generate_quick_battle(lcg: LCG, p_tsv: int = 0x10000):
     """
     Returns:
-        (p_team: int, e_team: int, code: int)
+        (p_team: PlayerTeam, e_team: EnemyTeam, code: int)
     """
     lcg.adv()
-    p_team = lcg.rand(5)
-    e_team = lcg.rand(5)
+    p_team = PlayerTeam(lcg.rand(5))
+    e_team = EnemyTeam(lcg.rand(5))
 
     lcg.adv()
     e_tsv = lcg.rand() ^ lcg.rand()
@@ -50,7 +101,8 @@ def generate_quick_battle(lcg: LCG, p_tsv: int = 0x10000) -> Tuple[int, int, int
     lcg.adv()  # SCD
     lcg.adv()  # Ability
     while True:
-        if (lcg.rand() ^ lcg.rand() ^ p_tsv) >= 8:
+        psv = lcg.rand() ^ lcg.rand()
+        if (psv ^ p_tsv) >= 8:
             break
     hp[2] += _gen_evs(lcg) // 4
 
@@ -61,7 +113,8 @@ def generate_quick_battle(lcg: LCG, p_tsv: int = 0x10000) -> Tuple[int, int, int
     lcg.adv()  # SCD
     lcg.adv()  # Ability
     while True:
-        if (lcg.rand() ^ lcg.rand() ^ p_tsv) >= 8:
+        psv = lcg.rand() ^ lcg.rand()
+        if (psv ^ p_tsv) >= 8:
             break
     hp[3] += _gen_evs(lcg) // 4
 

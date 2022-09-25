@@ -8,6 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.7"
+lcg = {git = "https://github.com/yatsuna827/LCG.py", rev = "main"}
 
 
 [tool.poetry.group.dev.dependencies]
