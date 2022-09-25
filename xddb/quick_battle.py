@@ -77,7 +77,7 @@ def generate_quick_battle(lcg: LCG, p_tsv: Optional[int] = None):
     e_tsv = lcg.rand() ^ lcg.rand()
 
     hp = [0, 0, 0, 0]
-    psv: Set[int] = Set()
+    psv: Set[int] = set()
 
     # 相手1匹目
     lcg.adv()
