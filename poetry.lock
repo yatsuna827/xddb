@@ -84,7 +84,7 @@ develop = false
 type = "git"
 url = "https://github.com/yatsuna827/LCG.py"
 reference = "main"
-resolved_reference = "4089bf271e30cc0d28d591b85b58c7a476a6c7b9"
+resolved_reference = "2234ba55bf195b7e45e8bdb9fdcbc00082678914"
 
 [[package]]
 name = "mccabe"
