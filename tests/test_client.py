@@ -1,7 +1,6 @@
 import unittest
 
-from xddb import EnemyTeam, PlayerTeam, XDDBClient
-from xddb.client import QuickBattleSeedSearcher
+from xddb import EnemyTeam, PlayerTeam, QuickBattleSeedSearcher, XDDBClient
 
 
 class TestXDDBClient(unittest.TestCase):
@@ -33,7 +32,7 @@ class TestXDDBClient(unittest.TestCase):
     def test_QuickBattleSeedSearcher(self):
         # init_seed = 0x481A5E2E
 
-        searcher = QuickBattleSeedSearcher()
+        searcher = QuickBattleSeedSearcher(self.cli)
         res = searcher.next((PlayerTeam.ミュウ, 340, 335), (EnemyTeam.フリーザー, 309, 344))
         self.assertEqual(None, res)
         res = searcher.next((PlayerTeam.ミュウ, 357, 321), (EnemyTeam.ラティアス, 289, 290))

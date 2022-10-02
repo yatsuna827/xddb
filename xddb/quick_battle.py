@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import List, Optional, Set, Tuple, overload
+from typing import List, Optional, Tuple
 
 from lcg.gc import LCG
 
@@ -54,21 +54,13 @@ class EnemyTeam(IntEnum):
         return _e_base_hp[self]
 
 
-@overload
-def generate_quick_battle(lcg: LCG) -> Tuple[PlayerTeam, EnemyTeam, int, Set[int]]:
-    pass
-
-
-@overload
-def generate_quick_battle(lcg: LCG, p_tsv: int) -> Tuple[PlayerTeam, EnemyTeam, int]:
-    pass
-
-
 def generate_quick_battle(lcg: LCG, p_tsv: Optional[int] = None):
     """
     Returns:
-        `(p_team: PlayerTeam, e_team: EnemyTeam, code: int, p_team_psvs: set[int])`
+        `(p_team: PlayerTeam, e_team: EnemyTeam, code: int, possible_tsv: set[int])`
     """
+    p_tsv = 0x10000 if p_tsv is None or p_tsv > 0xFFFF else p_tsv
+
     lcg.adv()
     p_team = PlayerTeam(lcg.rand(5))
     e_team = EnemyTeam(lcg.rand(5))
@@ -77,7 +69,6 @@ def generate_quick_battle(lcg: LCG, p_tsv: Optional[int] = None):
     e_tsv = lcg.rand() ^ lcg.rand()
 
     hp = [0, 0, 0, 0]
-    psv: Set[int] = set()
 
     # 相手1匹目
     lcg.adv()
@@ -111,12 +102,10 @@ def generate_quick_battle(lcg: LCG, p_tsv: Optional[int] = None):
     hp[2] = lcg.rand(32)
     lcg.adv()  # SCD
     lcg.adv()  # Ability
-    if p_tsv is None:
-        psv.add(lcg.rand() ^ lcg.rand())
-    else:
-        while True:
-            if (lcg.rand() ^ lcg.rand() ^ p_tsv) >= 8:
-                break
+    while True:
+        psv1 = lcg.rand() ^ lcg.rand()
+        if (psv1 ^ p_tsv) >= 8:
+            break
     hp[2] += _gen_evs(lcg) // 4
 
     # プレイヤー2匹目
@@ -125,24 +114,23 @@ def generate_quick_battle(lcg: LCG, p_tsv: Optional[int] = None):
     hp[3] = lcg.rand(32)
     lcg.adv()  # SCD
     lcg.adv()  # Ability
-    if p_tsv is None:
-        psv.add(lcg.rand() ^ lcg.rand())
-    else:
-        while True:
-            if (lcg.rand() ^ lcg.rand() ^ p_tsv) >= 8:
-                break
+    while True:
+        psv2 = lcg.rand() ^ lcg.rand()
+        if (psv2 ^ p_tsv) >= 8:
+            break
     hp[3] += _gen_evs(lcg) // 4
 
-    result = (
+    if p_tsv == 0x10000:
+        possible_tsv = {p_tsv}
+    else:
+        possible_tsv = {psv1, psv2}
+
+    return (
         p_team,
         e_team,
         (hp[0] << 24) + (hp[1] << 16) + (hp[2] << 8) + (hp[3]),
+        possible_tsv,
     )
-
-    if p_tsv is None:
-        return (*result, psv)
-    else:
-        return result
 
 
 def _gen_evs(lcg: LCG) -> int:
