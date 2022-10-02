@@ -79,3 +79,50 @@ class XDDBClient(object):
 
         with open(_path_file, "rb") as f:
             return md5(f.read()).hexdigest()
+
+
+def _qb_next(seed: int):
+    lcg = LCG(seed)
+    p, e, c, _ = generate_quick_battle(lcg)
+    return (p, e, c), lcg.seed
+
+
+class QuickBattleSeedSearcher(object):
+    """
+    手続き的にseed特定を行うのを補助するクラスです.
+    """
+
+    _client = XDDBClient()
+
+    def __init__(self) -> None:
+        self._seed_list = None
+        self._first = None
+        self._second = None
+
+    def next(
+        self, input_p: Tuple[PlayerTeam, int, int], input_e: Tuple[EnemyTeam, int, int]
+    ):
+        """
+        入力に応じて現在のseedの候補を返します.
+        入力が不足している場合はNoneが返却されます.
+        """
+        if self._first is None:
+            self._first = input_p, input_e
+        elif self._second is None:
+            self._second = input_p, input_e
+            first_p, first_e = self._first
+            self._seed_list = self._client.search(first_p, first_e, input_p, input_e)
+        else:
+            correct = input_p[0], input_e[0], _to_code(input_p, input_e)
+            self._seed_list = {
+                seed
+                for tri, seed in [_qb_next(s) for s in self._seed_list]
+                if tri == correct
+            }
+
+        return self._seed_list
+
+    def reset(self):
+        self._seed_list = None
+        self._first = None
+        self._second = None
