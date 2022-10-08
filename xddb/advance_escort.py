@@ -45,7 +45,7 @@ class QuickBattleAdvanceEscort(object):
             raise ValueError("現在のseedが未特定です")
 
         lcg = LCG(self.seed)
-        p, e, code, _ = generate_quick_battle(lcg)
+        p, e, code, _ = generate_quick_battle(lcg, self._tsv)
         p1, p2, e1, e2 = _decode(code, p, e)
         return (p, p1, p2), (e, e1, e2), lcg.seed
 

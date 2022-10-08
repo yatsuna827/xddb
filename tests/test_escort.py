@@ -60,6 +60,12 @@ class TestAdvanceEscort(unittest.TestCase):
         self.assertEqual(res.found_tsv, tsv)
         self.assertEqual(ae._tsv, tsv)
 
+        # TSVが指定されている状態なら色回避を考慮した予測が返される
+        self.assertEqual(
+            QuickBattleAdvanceEscort(0xE83E76F5, tsv).expected_next(),
+            (*actually_next, actually_next_seed),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
