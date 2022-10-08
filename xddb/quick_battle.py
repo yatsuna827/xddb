@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from lcg.gc import LCG
 
@@ -54,12 +54,12 @@ class EnemyTeam(IntEnum):
         return _e_base_hp[self]
 
 
-def generate_quick_battle(lcg: LCG, p_tsv: Optional[int] = None):
+def generate_quick_battle(lcg: LCG, p_tsv: int = 0x10000):
     """
     Returns:
         `(p_team: PlayerTeam, e_team: EnemyTeam, code: int, possible_tsv: set[int])`
     """
-    p_tsv = 0x10000 if p_tsv is None or p_tsv > 0xFFFF else p_tsv
+    p_tsv = 0x10000 if p_tsv > 0x10000 else p_tsv
 
     lcg.adv()
     p_team = PlayerTeam(lcg.rand(5))
@@ -120,7 +120,7 @@ def generate_quick_battle(lcg: LCG, p_tsv: Optional[int] = None):
             break
     hp[3] += _gen_evs(lcg) // 4
 
-    if p_tsv == 0x10000:
+    if p_tsv < 0x10000:
         possible_tsv = {p_tsv}
     else:
         possible_tsv = {psv1, psv2}
